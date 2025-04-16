@@ -39,8 +39,6 @@ export default function App() {
         return [...currentSheduled, talk];
       }
     });
-
-    console.log(schedule);
   }
 
   function handleToggleSee() {
