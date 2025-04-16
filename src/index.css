@@ -3,11 +3,11 @@
   margin: 0;
   box-sizing: border-box;
 }
-
-.block {
-  display: block;
+ul {
+  list-style: none;
 }
 
-.line {
-  text-decoration: line-through;
+.conf {
+  width: 850px;
+  margin: 30px 30px;
 }
