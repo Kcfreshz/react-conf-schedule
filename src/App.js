@@ -127,6 +127,4 @@ function MySchedule({ schedule }) {
   );
 }
 
-//
-// --------------------
-// ✓ 11:00 AM - State Management - Sarah Drasner
+
