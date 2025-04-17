@@ -1,32 +1,71 @@
 import { useState } from "react";
 const talks = [
   {
-    id: 1,
-    title: "React Component",
-    speaker: "Dr. Onyeka",
-    time: "10:00 AM",
-  },
-  {
     id: 2,
     title: "State Management in React",
-    speaker: "Kc Fresh",
+    speaker: "Dr. Demo",
     time: "11:00 AM",
   },
+
+  {
+    id: 1,
+    title: "React Component",
+    speaker: "KC Fresh",
+    time: "10:00 AM",
+  },
+
   {
     id: 3,
     title: "Controlled Element",
-    speaker: "Obika Uche",
+    speaker: "Dr. Francis N.",
+    time: "4:00 PM",
+  },
+  {
+    id: 4,
+    title: "React Fragment",
+    speaker: "Dr. Unique",
     time: "1:00 PM",
   },
 ];
 
-function Button({ children, onSee }) {
-  return <button onClick={onSee}>{children}</button>;
+function Button({ children, onClick, color }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        marginTop: "20px",
+        padding: "10px 15px",
+        backgroundColor: color,
+        color: "#fff",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+      }}
+    >
+      {children}
+    </button>
+  );
 }
 
 export default function App() {
   const [see, setSee] = useState(false);
   const [schedule, setSchedule] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredTalks = talks.filter(
+    (talk) =>
+      talk.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      talk.speaker.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      talk.time.includes(searchQuery.toLowerCase() || searchQuery.toUpperCase())
+  );
+  const sortedFilteredTalks = sortByTime(filteredTalks);
+
+  function sortByTime(talks) {
+    return [...talks].sort(
+      (a, b) =>
+        new Date("4/16/2025 " + a.time) - new Date("4/16/2025 " + b.time)
+    );
+  }
 
   function handleSchedule(talk) {
     setSchedule((currentSheduled) => {
@@ -45,22 +84,36 @@ export default function App() {
     setSee((s) => !s);
   }
 
+  function clearSchedule() {
+    setSchedule([]);
+  }
+
+  const color = see ? "red" : "skyblue";
+
   return (
     <div className="conf">
       <Intro />
 
-      {talks.map((talk) => (
-        <AvailableTalks
-          talk={talk}
-          key={talk.id}
+      <InputQuery searchQuery={searchQuery} onSearchQuery={setSearchQuery} />
+
+      <AvailableTalks
+        talks={sortedFilteredTalks}
+        schedule={schedule}
+        onSchedule={handleSchedule}
+      />
+
+      <hr style={{ margin: "30px 0" }} />
+
+      {see && (
+        <MySchedule
           schedule={schedule}
-          onSchedule={handleSchedule}
+          talks={sortedFilteredTalks}
+          onClearSchedule={clearSchedule}
+          color={color}
         />
-      ))}
+      )}
 
-      {see && <MySchedule schedule={schedule} />}
-
-      <Button onSee={handleToggleSee}>
+      <Button onClick={handleToggleSee} color={color}>
         {see ? "Close Schedule" : "See Schedule"}
       </Button>
     </div>
@@ -70,61 +123,92 @@ export default function App() {
 function Intro() {
   return (
     <>
-      <div>
+      <div style={{ margin: "15px" }}>
         <span>====================</span>
         <h1>React Conf 2025</h1>
         <span>====================</span>
-      </div>
-      <div>
-        <h2>📢 Available Talks</h2>
-        <span>-------------------------------------</span>
       </div>
     </>
   );
 }
 
-function AvailableTalks({ talk, onSchedule, schedule }) {
+function InputQuery({ searchQuery, onSearchQuery }) {
   return (
-    <ul>
-      <TalkLists talk={talk} onSchedule={onSchedule} schedule={schedule} />
-    </ul>
+    <input
+      type="text"
+      placeholder="🔎 Search speaker or time..."
+      style={{
+        padding: "10px",
+        width: "100%",
+        margin: "20px 0",
+        fontSize: "16px",
+      }}
+      value={searchQuery}
+      onChange={(e) => onSearchQuery(e.target.value)}
+    />
+  );
+}
+
+function AvailableTalks({ talks, onSchedule, schedule }) {
+  return (
+    <div>
+      <h4>📢 Available Talks</h4>
+      <div>
+        {talks.map((talk) => (
+          <TalkLists
+            talk={talk}
+            key={talk.id}
+            onSchedule={onSchedule}
+            schedule={schedule}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
 function TalkLists({ talk, schedule, onSchedule }) {
   const isScheduled = schedule.some((s) => s.id === talk.id);
   return (
-    <li>
-      <input
-        type="checkbox"
-        id={talk.id}
-        checked={isScheduled}
-        onChange={() => onSchedule(talk)}
-      />
-      <label htmlFor={talk.id}>
-        {talk.time} - {talk.title} - {talk.speaker}
-      </label>
-    </li>
-  );
-}
-
-function MySchedule({ schedule }) {
-  return (
-    <div>
-      <h3>⭐ My Schedule</h3>
-      {schedule.length === 0 ? (
-        <p>No preferred talk added yet.</p>
-      ) : (
-        <ul>
-          {schedule.map((s) => (
-            <li key={s.id}>
-              {s.time} - {s.title} - {s.speaker}
-            </li>
-          ))}
-        </ul>
-      )}
+    <div
+      style={{
+        border: "1px solid #ccc",
+        padding: "10px",
+        margin: "10px 0",
+        backgroundColor: isScheduled ? "#d1e7dd" : "#fff",
+        cursor: "pointer",
+      }}
+      onClick={() => onSchedule(talk)}
+    >
+      <p>
+        {talk.time} - {talk.title}
+      </p>
+      <p>👤 {talk.speaker}</p>
     </div>
   );
 }
 
+function MySchedule({ schedule, talks, onClearSchedule, color }) {
+  const reSchedule = talks.filter((talk) => schedule.includes(talk));
 
+  return (
+    <div>
+      <h3 style={{ margin: "15px 0" }}>⭐ My Schedule</h3>
+      {reSchedule.length === 0 ? (
+        <p>No preferred talk added yet.</p>
+      ) : (
+        <div>
+          {reSchedule.map((s) => (
+            <p key={s.id} style={{ margin: "10px 0" }}>
+              ✅{s.time} - {s.title} - {s.speaker}
+            </p>
+          ))}
+
+          <Button onClick={onClearSchedule} color={color}>
+            Clear Schedule
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
